@@ -1,0 +1,106 @@
+﻿<Window x:Class="L.r._3_.NET.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:L.r._3_.NET"
+        mc:Ignorable="d"
+        Title="Система замовлень" Height="800" Width="800"
+        Background="#FFE3F2FD">
+
+    <Window.Resources>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="DodgerBlue"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <!-- Усі поля вводу -->
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="3"/>
+            <Setter Property="Margin" Value="0,3,0,3"/>
+        </Style>
+
+        <!-- Усі рамки з заголовком -->
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+
+    </Window.Resources>
+
+    <StackPanel Margin="10">
+
+        <!-- Створення замовлення -->
+        <GroupBox Header="Нове замовлення">
+            <StackPanel Margin="10">
+
+                <Label Content="Тип замовлення:"/>
+                <ComboBox x:Name="OrderTypeComboBox" Width="250" HorizontalAlignment="Left"
+                          SelectionChanged="OrderTypeComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Інтернет-замовлення"/>
+                    <ComboBoxItem Content="Замовлення в магазині"/>
+                </ComboBox>
+
+                <!-- Поля тільки для інтернет-замовлення -->
+                <StackPanel x:Name="OnlineFields">
+                    <Label Content="Спосіб доставки:"/>
+                    <ComboBox x:Name="DeliveryComboBox" Width="250" HorizontalAlignment="Left"/>
+                </StackPanel>
+
+                <!-- Поля тільки для замовлення в магазині -->
+                <StackPanel x:Name="StoreFields" Visibility="Collapsed">
+                    <Label Content="Ім'я клієнта:"/>
+                    <TextBox x:Name="CustomerNameTextBox"/>
+                </StackPanel>
+
+                <!-- Поля для обох типів -->
+                <Label Content="Назва товару:"/>
+                <TextBox x:Name="ItemNameTextBox"/>
+
+                <Label Content="Ціна товару:"/>
+                <TextBox x:Name="PriceTextBox"/>
+
+                <Button x:Name="AddItemButton" Content="Додати товар"
+                        Click="AddItemButton_Click"/>
+
+                <Label Content="Товари в замовленні:"/>
+                <ListBox x:Name="CartListBox" Height="80"/>
+
+                <Button x:Name="CreateOrderButton" Content="Створити замовлення"
+                        Click="CreateOrderButton_Click"/>
+
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Список створених замовлень -->
+        <GroupBox Header="Список замовлень">
+            <ListBox x:Name="OrdersListBox" Height="150"/>
+        </GroupBox>
+
+        <!-- Аналітика -->
+        <GroupBox Header="Загальні вартості різних видів замовлень">
+           <StackPanel Margin="5">
+
+                <!-- Рядок 1: інтернет і магазин поруч -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="Інтернет-замовлення: " FontWeight="Bold"/>
+                    <TextBlock x:Name="OnlineTotalTextBlock" Text="0,00 ₴" Margin="0,0,50,0"/>
+
+                    <TextBlock Text="Замовлення в магазині: " FontWeight="Bold"/>
+                    <TextBlock x:Name="StoreTotalTextBlock" Text="0,00 ₴"/>
+                </StackPanel>
+
+                <!-- Рядок 2: усі замовлення по центру -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                    <TextBlock Text="Усі замовлення разом: " FontWeight="Bold"/>
+                    <TextBlock x:Name="AllTotalTextBlock" Text="0,00 ₴"/>
+                </StackPanel>
+
+           </StackPanel>
+        </GroupBox>
+    </StackPanel>
+</Window>
