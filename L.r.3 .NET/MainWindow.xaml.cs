@@ -1,4 +1,5 @@
-﻿using L.r._3_.NET.Models;
+﻿using L.r._3_4_.NET.Models;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,7 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace L.r._3_.NET
+namespace L.r._3_4_.NET
 {
     public partial class MainWindow : Window
     {
@@ -18,7 +19,7 @@ namespace L.r._3_.NET
         private List<Order> _orders = new List<Order>();
         private List<string> _cartNames = new List<string>();
         private List<double> _cartPrices = new List<double>();
-        // Номер, який отримає наступне замовлення
+        // Лічильник для автонумерації
         private int _nextNumber = 1;
 
         public MainWindow()
@@ -27,6 +28,8 @@ namespace L.r._3_.NET
 
             DeliveryComboBox.ItemsSource = OnlineOrder.AvailableMethods; // Заповнення списку способів доставки
             DeliveryComboBox.SelectedIndex = 0;
+
+            NoCardRadio.IsChecked = true;
 
             OrderTypeComboBox.SelectedIndex = 0;  //Перший тип замолення: онлайн-замовлення
         }
@@ -37,12 +40,29 @@ namespace L.r._3_.NET
             {
                 OnlineFields.Visibility = Visibility.Visible;
                 StoreFields.Visibility = Visibility.Collapsed;
+                CorporateFields.Visibility = Visibility.Collapsed;
             }
-            else                                        // Замовлення в магазині
+            else if (OrderTypeComboBox.SelectedIndex == 1) // Замовлення в магазині
             {
                 OnlineFields.Visibility = Visibility.Collapsed;
                 StoreFields.Visibility = Visibility.Visible;
+                CorporateFields.Visibility = Visibility.Collapsed;
             }
+            else
+            {
+                OnlineFields.Visibility = Visibility.Collapsed;
+                StoreFields.Visibility = Visibility.Collapsed;
+                CorporateFields.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void CardRadio_Changed(object sender, RoutedEventArgs e)
+        {
+            // Поле телефону видно, лише коли обрано «Є»
+            if (HasCardRadio.IsChecked == true)
+                PhonePanel.Visibility = Visibility.Visible;
+            else
+                PhonePanel.Visibility = Visibility.Collapsed;
         }
 
         private void AddItemButton_Click(object sender, RoutedEventArgs e)
@@ -83,6 +103,7 @@ namespace L.r._3_.NET
         {
             try
             {
+
                 if (_cartPrices.Count == 0)
                 {
                     MessageBox.Show("Додайте хоча б один товар.",
@@ -96,21 +117,26 @@ namespace L.r._3_.NET
                 {
                     string method = DeliveryComboBox.SelectedItem.ToString();
                     order = new OnlineOrder(_nextNumber, method);
+                }
+                else if (OrderTypeComboBox.SelectedIndex == 1)
+                {
 
-                    for (int i = 0; i < _cartPrices.Count; i++)
+                    var store = new StoreOrder(_nextNumber, CustomerNameTextBox.Text);
+
+                    if (HasCardRadio.IsChecked == true)
                     {
-                        order.AddItem(_cartNames[i], _cartPrices[i]);
+                        store.LoyaltyPhone = LoyaltyPhoneTextBox.Text;
                     }
+                    order = store;
                 }
                 else
                 {
-                    var store = new StoreOrder(_nextNumber, CustomerNameTextBox.Text);
+                    order = new CorporateOrder(_nextNumber, CompanyNameTextBox.Text, EdrpouTextBox.Text);
+                }
 
-                    for (int i = 0; i < _cartPrices.Count; i++)
-                    {
-                        store.AddToReceipt(_cartNames[i], _cartPrices[i]);
-                    }
-                    order = store;
+                for (int i = 0; i < _cartPrices.Count; i++)
+                {
+                    order.AddItem(_cartNames[i], _cartPrices[i]);
                 }
 
                 // Додаємо замовлення в список і показуємо його опис
@@ -123,6 +149,10 @@ namespace L.r._3_.NET
 
                 ClearCart();
                 CustomerNameTextBox.Clear();
+                LoyaltyPhoneTextBox.Clear();
+                CompanyNameTextBox.Clear();
+                EdrpouTextBox.Clear();
+                NoCardRadio.IsChecked = true;
             }
             catch (ArgumentException ex)
             {
@@ -148,7 +178,11 @@ namespace L.r._3_.NET
         {
             OnlineTotalTextBlock.Text = OrderAnalysis.GetTotalCostWithDelivery(_orders).ToString("C");
             StoreTotalTextBlock.Text = OrderAnalysis.GetStoreTotal(_orders).ToString("C");
+            CorporateTotalTextBlock.Text = OrderAnalysis.GetCorporateTotal(_orders).ToString("C");
             AllTotalTextBlock.Text = OrderAnalysis.GetAllOrdersTotal(_orders).ToString("C");
+
+            List<IDiscountable> discountables = _orders.OfType<IDiscountable>().ToList();
+            DiscountTotalTextBlock.Text = OrderAnalysis.GetTotalDiscount(discountables).ToString("C");
         }
     }
 }

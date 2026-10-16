@@ -1,4 +1,4 @@
-﻿using L.r._3_.NET.Models;
+﻿using L.r._3_4_.NET.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,14 +66,40 @@ namespace OrderTests
             Assert.ThrowsException<ArgumentException>(() => order.AddToReceipt("Хліб", -5));
         }
 
-        // У магазині немає доставки: підсумок дорівнює сумі товарів
+        // Якщо правильний телефон, картка лояльності є
         [TestMethod]
-        public void GetTotalCost_EqualsTotalAmount()
+        public void LoyaltyPhone_ValidNumber_SetsCard()
         {
             var order = new StoreOrder(1, "Іван");
-            order.AddToReceipt("Хліб", 25);
+            order.LoyaltyPhone = "0961234567";
+            Assert.IsTrue(order.HasLoyaltyCard);
+        }
 
-            Assert.AreEqual(25, order.GetTotalCost(), 0.001);
+        // Якщо неправильний телефон, то помилка
+        [TestMethod]
+        public void LoyaltyPhone_InvalidFormat()
+        {
+            var order = new StoreOrder(1, "Іван");
+            Assert.ThrowsException<ArgumentException>(() => order.LoyaltyPhone = "12345");
+        }
+
+        // Без картки знижки немає
+        [TestMethod]
+        public void GetDiscountAmount_WithoutCard_ReturnsZero()
+        {
+            var order = new StoreOrder(1, "Іван");
+            order.AddToReceipt("Хліб", 100);
+            Assert.AreEqual(0, order.GetDiscountAmount(), 0.001);
+        }
+
+        // З карткою знижка 3%
+        [TestMethod]
+        public void GetDiscountAmount_WithCard_Returns3Percent()
+        {
+            var order = new StoreOrder(1, "Іван");
+            order.LoyaltyPhone = "0961234567";
+            order.AddToReceipt("Хліб", 100);
+            Assert.AreEqual(3, order.GetDiscountAmount(), 0.001);
         }
 
         // Тестування методу GetInfo
@@ -81,18 +107,21 @@ namespace OrderTests
         public void GetInfo_ReturnsCorrectInfoString()
         {
             var order = new StoreOrder(3, "Іван");
-            order.AddToReceipt("Хліб", 25);
-            order.AddToReceipt("Молоко", 40);
+            order.LoyaltyPhone = "0961234567";
+            order.AddToReceipt("Хліб", 40);
+            order.AddToReceipt("Молоко", 60);
 
             string info = order.GetInfo();
 
             StringAssert.Contains(info, "Замовлення в магазині №3");
             StringAssert.Contains(info, $"Дата: {DateTime.Now.ToShortDateString()}");
             StringAssert.Contains(info, "Клієнт: Іван");
+            StringAssert.Contains(info, "Номер телефона для знижки: 0961234567");
             StringAssert.Contains(info, "Чек:");
-            StringAssert.Contains(info, $"Хліб: {25.0:C}");
-            StringAssert.Contains(info, $"Молоко: {40.0:C}");
-            StringAssert.Contains(info, $"Разом: {65.0:C}");
+            StringAssert.Contains(info, $"Хліб: {40.0:C}");
+            StringAssert.Contains(info, $"Молоко: {60.0:C}");
+            StringAssert.Contains(info, $"Знижка: -{3:C}");
+            StringAssert.Contains(info, $"Разом: {97.0:C}");
         }
     }
 }

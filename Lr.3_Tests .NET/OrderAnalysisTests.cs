@@ -1,4 +1,4 @@
-﻿using L.r._3_.NET.Models;
+﻿using L.r._3_4_.NET.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,24 +48,58 @@ namespace OrderTests
             Assert.AreEqual(65, result, 0.001);
         }
 
-        // Усі замовлення: інтернет + магазин
+        // Корпоративні замовлення: інші не враховуються
+        [TestMethod]
+        public void GetCorporateTotal_MixedOrders_CountsOnlyCorporate()
+        {
+            var corp = new CorporateOrder(1, "ТОВ Ромашка", "12345678");
+            corp.AddItem("Принтер", 1000);                  // 1000 - 100 + 200 = 1100
+
+            var online = new OnlineOrder(2, "Кур'єр");
+            online.AddItem("Масло", 100); // не враховується
+
+            var orders = new List<Order> { corp, online };
+
+            Assert.AreEqual(1100, OrderAnalysis.GetCorporateTotal(orders), 0.001);
+        }
+
+        // Загальна сума знижок для трьох класів через один інтерфейс
+        [TestMethod]
+        public void GetTotalDiscount_ThroughInterface_SumsDiscountsOfAllClasses()
+        {
+            var online = new OnlineOrder(1, "Самовивіз");
+            online.AddItem("Товар", 1000);                  // 5% = 50
+
+            var corp = new CorporateOrder(2, "ТОВ Ромашка", "12345678");
+            corp.AddItem("Папір", 200);                     // 10% = 20
+
+            var store = new StoreOrder(3, "Іван");
+            store.LoyaltyPhone = "0961234567";
+            store.AddToReceipt("Хліб", 100);                // 3% = 3
+
+            var items = new List<IDiscountable> { online, corp, store };
+
+            Assert.AreEqual(73, OrderAnalysis.GetTotalDiscount(items), 0.001);
+        }
+
+        // Усі замовлення: інтернет + магазин + корпоративні
         [TestMethod]
         public void GetAllOrdersTotal_MixedOrders_ReturnsSumOfAll()
         {
             var online = new OnlineOrder(1, "Нова пошта");
             online.AddItem("Хліб", 200);                 // 200 + 70 = 270
 
-            var courier = new OnlineOrder(2, "Кур'єр");
-            courier.AddItem("Масло", 100);                // 100 + 100 = 200
-
             var store = new StoreOrder(3, "Іван");
             store.AddToReceipt("Хліб", 30);      // 30
 
-            var orders = new List<Order> { online, courier, store };
+            var corp = new CorporateOrder(2, "ТОВ Ромашка", "12345678");
+            corp.AddItem("Папір", 200);                     // 200 - 20 + 200 = 380
+
+            var orders = new List<Order> { online, corp, store };
 
             double result = OrderAnalysis.GetAllOrdersTotal(orders);
 
-            Assert.AreEqual(500, result, 0.001);
+            Assert.AreEqual(680, result, 0.001);
         }
 
         // Порожній список

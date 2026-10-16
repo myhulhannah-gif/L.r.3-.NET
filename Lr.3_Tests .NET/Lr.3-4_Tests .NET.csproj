@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\L.r.3 .NET\L.r.3 .NET.csproj" />
+    <ProjectReference Include="..\L.r.3 .NET\L.r.3-4 .NET.csproj" />
   </ItemGroup>
 
   <ItemGroup>

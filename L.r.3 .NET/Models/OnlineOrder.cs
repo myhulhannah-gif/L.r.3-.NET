@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace L.r._3_.NET.Models
+namespace L.r._3_4_.NET.Models
 {
-    public class OnlineOrder : Order
+    public class OnlineOrder : Order, IDeliverable, IDiscountable
     {
         // Допустимі способи доставки
         public static readonly string[] AvailableMethods = { "Кур'єр", "Нова пошта", "Самовивіз" };
@@ -49,14 +49,32 @@ namespace L.r._3_.NET.Models
             {
                 return 70;
             }
-            else{
+            else
+            {
                 return 0;  // Самовивіз
+            }
+        }
+
+        // Реалізація IDiscountable
+        public double GetDiscountAmount()
+        {
+            if (TotalAmount >= 3000)
+            {
+                return TotalAmount * 0.10; // 10% знижка
+            }
+            else if (TotalAmount >= 1000)
+            {
+                return TotalAmount * 0.05; // 5% знижка
+            }
+            else
+            {
+                return 0; // без знижки
             }
         }
 
         public override double GetTotalCost()
         {
-            return base.GetTotalCost() + CalculateDeliveryCost();
+            return base.GetTotalCost() - GetDiscountAmount() + CalculateDeliveryCost();
         }
 
         public override string GetInfo()
@@ -65,12 +83,18 @@ namespace L.r._3_.NET.Models
             info.AppendLine($"Інтернет-замовлення №{Number}");
             info.AppendLine($"Дата: {Date.ToShortDateString()}");
             info.AppendLine($"Спосіб доставки: {DeliveryMethod}");
+
             info.AppendLine($"Товари:");
-            foreach(string line in ItemLines)
+            foreach (string line in ItemLines)
             {
                 info.AppendLine($"  {line}");
             }
+
             info.AppendLine($"Сума товарів: {TotalAmount:C}");
+
+            if (GetDiscountAmount() > 0)
+                info.AppendLine($"Знижка: -{GetDiscountAmount():C}");
+
             info.AppendLine($"Вартість доставки: {CalculateDeliveryCost():C}");
             info.AppendLine($"Разом: {GetTotalCost():C}");
             return info.ToString();

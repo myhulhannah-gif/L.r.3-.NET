@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace L.r._3_.NET.Models
+namespace L.r._3_4_.NET.Models
 {
-    public abstract class Order
+    public abstract class Order : IDescribable
     {
         public int Number { get; }
         public DateTime Date { get; }
@@ -49,13 +49,13 @@ namespace L.r._3_.NET.Models
             _itemLines.Add($"{name.Trim()}: {price:C}");
         }
 
-        // Віртуальний метод: Підсумкова вартість замовлення. 
+        // Віртуальний метод: Підсумкова вартість замовлення
         public virtual double GetTotalCost()
         {
             return TotalAmount;
         }
 
-        // Абстрактний метод: текстовий опис замовлення.
+        // Абстрактний метод: текстовий опис замовлення
         public abstract string GetInfo();
     }
 }
